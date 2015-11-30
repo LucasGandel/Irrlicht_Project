@@ -1,0 +1,2 @@
+// The configured options and settings for Irrlicht_Project
+#define MEDIA_DIR "@MEDIA_DIR@"
