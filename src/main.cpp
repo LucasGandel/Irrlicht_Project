@@ -1,13 +1,18 @@
 #include <irrlicht.h>
+
 #include "Project_Config.h"
+#include "../include/EventReceiver.hpp"
 
 int main(void)
 {
+  //Event Receiver
+  EventReceiver eventReceiver;
+
   // Device creation
   irr::IrrlichtDevice* device = irr::createDevice(
     irr::video::EDT_OPENGL, // API = OpenGL
     irr::core::dimension2d<irr::u32>( 800, 600 ), // Window Size 640x480p
-    32, false, false, false, 0 ); // 32 bits/pixel, FullScreen, StencilBuffer, Vsync, Receiver
+    32, false, false, false, &eventReceiver ); // 32 bits/pixel, FullScreen, StencilBuffer, Vsync, Receiver
 
   // Create Video Driver
   irr::video::IVideoDriver* driver =
@@ -30,6 +35,12 @@ int main(void)
   //Rendering loop
   while (device->run())
   {
+    //Close window if the Escape key is pressed
+    if(eventReceiver.IsKeyDown( irr::KEY_ESCAPE))
+    {
+      device->closeDevice();
+    }
+    //Draw scene
     driver->beginScene( true, true, color );
     sceneManager->drawAll ();
     driver->endScene ();

@@ -15,7 +15,7 @@ configure_file( CMake/Project_Config.h.in Project_Config.h @ONLY )
 
 # add_executable sources
 file(GLOB SOURCES src/*.cpp)
-file(GLOB HEADERS include/*.hpp)
+file(GLOB HEADERS include/*.[ch]*)
 
 # Include CMake Generated files ( ProjectConfig.h )
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
