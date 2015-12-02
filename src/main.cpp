@@ -2,6 +2,8 @@
 
 #include "Project_Config.h"
 #include "../include/EventReceiver.hpp"
+#include "../include/TerrainManager.hpp"
+#include "../include/CameraManager.hpp"
 
 int main(void)
 {
@@ -24,10 +26,14 @@ int main(void)
   //Set Cursor visibility
   device->getCursorControl()->setVisible( true );
 
-  //Add Static camera
-  sceneManager->addCameraSceneNode( 0,         //Set camera as static
-    irr::core::vector3df( 40.0f, 10.0f, 15.0f ), // Camera position
-    irr::core::vector3df( 0.0f, 9.0f, 15.0f ) );  // Camera orientation
+  // Add FPS camera
+  CameraManager cameraManager;
+  cameraManager.addFPSCameraToScene( sceneManager );
+
+  // Add terrain scene node
+  TerrainManager terrainManager;
+  terrainManager.addTerrainToScene( sceneManager, driver );
+  terrainManager.addSceneNodeCollision( sceneManager, cameraManager.camera );
 
   //Set font color ( A (transparency), R, G, B )
   irr::video::SColor color( 255, 255, 255, 255);
