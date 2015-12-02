@@ -14,13 +14,6 @@ class TerrainManager
     //Add ITerrainSceneNode to scene manager
     void addTerrainToScene( irr::scene::ISceneManager* sceneManager, irr::video::IVideoDriver* driver )
     {
-      createTerrainSceneNode( sceneManager, driver );
-      handleCollision( sceneManager );
-    }
-
-    //Create TerrainSceneNode
-    void createTerrainSceneNode( irr::scene::ISceneManager* sceneManager, irr::video::IVideoDriver* driver )
-    {
       //Path Finder to load texture
       PathFinder pathFinder;
 
@@ -48,12 +41,21 @@ class TerrainManager
     }
 
     //Collision Handling
-    void handleCollision ( irr::scene::ISceneManager* sceneManager )
+    void addSceneNodeCollision( irr::scene::ISceneManager* sceneManager, irr::scene::ISceneNode* sceneNode )
     {
-      // Create triangle selector to handle collision
-      irr::scene::ITriangleSelector* selector
-        = sceneManager->createTerrainTriangleSelector( terrain, 0 );
+      // Create triangle selector
+      irr::scene::ITriangleSelector* selector =
+        sceneManager->createTerrainTriangleSelector( terrain, 0 );
       terrain->setTriangleSelector( selector );
+      //Create collision response animator and attach it to the scene node
+      irr::scene::ISceneNodeAnimator* animator = sceneManager->createCollisionResponseAnimator(
+        selector, sceneNode,
+        irr::core::vector3df( 60, 100, 60 ),//Ellipsoid Radius
+        irr::core::vector3df( 0, 0, 0 ),    //Gravity per second
+        irr::core::vector3df( 0, 50, 0) );  //Ellipsoid Translation
+      selector->drop();
+      sceneNode->addAnimator( animator );
+      animator->drop();
     }
 
     //Terrain scene node
