@@ -4,6 +4,12 @@
 #include "../include/EventReceiver.hpp"
 #include "../include/TerrainManager.hpp"
 #include "../include/CameraManager.hpp"
+#include "../include/CharacterManager.hpp"
+
+#include <iostream>
+
+float direction = 0.0f;
+float zdirection = 0.0f;
 
 int main(void)
 {
@@ -24,16 +30,21 @@ int main(void)
     device->getSceneManager();
 
   //Set Cursor visibility
-  device->getCursorControl()->setVisible( true );
+  device->getCursorControl()->setVisible( false );
 
-  // Add FPS camera
+  //Add 3rd Person camera
   CameraManager cameraManager;
-  cameraManager.addFPSCameraToScene( sceneManager );
+  cameraManager.add3rdPersonCameraToScene( sceneManager );
+
+  //Add mesh
+  CharacterManager characterManager;
+  characterManager.addCharacterToScene( sceneManager, driver );
 
   // Add terrain scene node
   TerrainManager terrainManager;
   terrainManager.addTerrainToScene( sceneManager, driver );
-  terrainManager.addSceneNodeCollision( sceneManager, cameraManager.camera );
+  terrainManager.addSceneNodeCollision( sceneManager, characterManager.characterNode );
+  terrainManager.addSceneNodeCollision( sceneManager, cameraManager.cameraNode );
 
   //Set font color ( A (transparency), R, G, B )
   irr::video::SColor color( 255, 255, 255, 255);
@@ -46,6 +57,10 @@ int main(void)
     {
       device->closeDevice();
     }
+
+    //3rd Person mouvement
+    cameraManager.move3rdPersonCameraControl( device, characterManager.characterNode );
+
     //Draw scene
     driver->beginScene( true, true, color );
     sceneManager->drawAll ();

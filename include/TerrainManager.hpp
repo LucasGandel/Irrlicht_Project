@@ -18,7 +18,7 @@ class TerrainManager
       PathFinder pathFinder;
 
       //Create node
-      terrain = sceneManager->addTerrainSceneNode(
+      terrainNode = sceneManager->addTerrainSceneNode(
         pathFinder.getFullMediaPath( "terrain-heightmap.bmp" ),//HeightMap
         0,					                                   //Parent node
         -1,					                                   //Node id
@@ -31,13 +31,13 @@ class TerrainManager
         4 );				                                   //SmoothFactor
 
       //Set Material
-      terrain->setMaterialFlag( irr::video::EMF_LIGHTING, false );
-      terrain->setMaterialTexture( 0,
+      terrainNode->setMaterialFlag( irr::video::EMF_LIGHTING, false );
+      terrainNode->setMaterialTexture( 0,
         driver->getTexture( pathFinder.getFullMediaPath( "terrain-texture.jpg" ) ) );
-      terrain->setMaterialTexture(1,
+      terrainNode->setMaterialTexture(1,
         driver->getTexture( pathFinder.getFullMediaPath( "detailmap3.jpg" ) ) );
-      terrain->setMaterialType( irr::video::EMT_DETAIL_MAP );
-      terrain->scaleTexture( 1.0f, 20.0f );
+      terrainNode->setMaterialType( irr::video::EMT_DETAIL_MAP );
+      terrainNode->scaleTexture( 1.0f, 20.0f );
     }
 
     //Collision Handling
@@ -45,21 +45,33 @@ class TerrainManager
     {
       // Create triangle selector
       irr::scene::ITriangleSelector* selector =
-        sceneManager->createTerrainTriangleSelector( terrain, 0 );
-      terrain->setTriangleSelector( selector );
+        sceneManager->createTerrainTriangleSelector( terrainNode, 0 );
+      terrainNode->setTriangleSelector( selector );
+
+      //Disable gravity for the Camera
+      if( sceneNode->getID() == 0 )
+      {
+        y_gravity = 0.0f;
+      }
+      else
+      {
+        y_gravity = -10.0f;
+      }
       //Create collision response animator and attach it to the scene node
       irr::scene::ISceneNodeAnimator* animator = sceneManager->createCollisionResponseAnimator(
         selector, sceneNode,
         irr::core::vector3df( 60, 100, 60 ),//Ellipsoid Radius
-        irr::core::vector3df( 0, 0, 0 ),    //Gravity per second
-        irr::core::vector3df( 0, 50, 0) );  //Ellipsoid Translation
+        irr::core::vector3df( 0, y_gravity, 0 ),//Gravity per second
+        irr::core::vector3df( 0, 0, 0) );  //Ellipsoid Translation (Offset)
       selector->drop();
       sceneNode->addAnimator( animator );
       animator->drop();
     }
 
     //Terrain scene node
-    irr::scene::ITerrainSceneNode* terrain;
+    irr::scene::ITerrainSceneNode* terrainNode;
+
+    float y_gravity;
 
 };
 #endif // TERRAINSCENENODE_HPP
