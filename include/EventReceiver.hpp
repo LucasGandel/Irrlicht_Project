@@ -10,7 +10,7 @@ class EventReceiver : public irr::IEventReceiver
     EventReceiver()
     {
       for ( irr::u32 i=0; i < irr::KEY_KEY_CODES_COUNT; ++i )
-      KeyIsDown[i] = false;
+        KeyIsDown[i] = false;
     }
 
     // This is the one method that we have to implement

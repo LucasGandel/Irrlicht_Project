@@ -3,6 +3,7 @@
 
 #include <irrlicht.h>
 #include "PathFinder.hpp"
+#include "EventReceiver.hpp"
 
 class CameraManager
 {
@@ -10,7 +11,7 @@ class CameraManager
     //! Constructor
     CameraManager()
       :FarValue( 42000.0f ),thirdPersonCamera( false ),
-       y_Rotation( 0.0f ), y_Direction( 0.0f )
+       y_Rotation( 0.0f ), y_Direction( 0.0f ), y_MeshRotation( 0.0f )
     {}
 
     //Add 3er person camera
@@ -18,7 +19,7 @@ class CameraManager
     {
       //WARNING : Call move3rdPersonCameraControl() in the main loop to trigger.
       cameraNode = sceneManager->addCameraSceneNode( 0, //Parent Node
-        irr::core::vector3df( 0.0f, 0.0f, 0.0f ),       //Camera position
+        irr::core::vector3df( 0.0f, 0.0f, 0.0f ),       //CamDOWNera position
         irr::core::vector3df( 0.0f, 0.0f, 0.0f ),       //Camera orientation
         0,                                              //Camera Id
         true );                                         //Set Active
@@ -48,7 +49,7 @@ class CameraManager
 
     //Move 3rd person camera and its character
     void move3rdPersonCameraControl( irr::IrrlichtDevice* device,
-      irr::scene::IAnimatedMeshSceneNode* node )
+      irr::scene::IAnimatedMeshSceneNode* characterNode, EventReceiver* eventReceiver )
     {
       irr::core::position2d<irr::f32> cursorPos =
         device->getCursorControl()->getRelativePosition();
@@ -74,15 +75,35 @@ class CameraManager
 
       //Set 3rd person mouvement
       irr::core::vector3df facing(
-        sin( ( node->getRotation().Y + 90.0f ) * irr::core::PI/180.0f ),
+        sin( ( characterNode->getRotation().Y + 90.0f ) * irr::core::PI/180.0f ),
         0,
-        cos( ( node->getRotation().Y + 90.0f ) * irr::core::PI/180.0f )
+        cos( ( characterNode->getRotation().Y + 90.0f ) * irr::core::PI/180.0f )
       );
+
+      float speed = 0.0f;
+      if( eventReceiver->IsKeyDown( irr::KEY_DOWN) )
+      {
+      speed = -4.0f;
+      }
+      if( eventReceiver->IsKeyDown( irr::KEY_UP) )
+      {
+      speed = 4.0f;
+      }
+      if( eventReceiver->IsKeyDown( irr::KEY_LEFT ))
+      {
+      y_MeshRotation -= 3.0f;
+      }
+      if( eventReceiver->IsKeyDown( irr::KEY_RIGHT ))
+      {
+      y_MeshRotation += 3.0f;
+      }
+
       facing.normalize();
-      float speed = 4.0f;
-      irr::core::vector3df newPos = ( facing * speed ) + node->getPosition();
-      node->setPosition( newPos );
-      irr::core::vector3df playerPos = node->getPosition();
+      irr::core::vector3df newPos = ( facing * speed ) + characterNode->getPosition();
+      characterNode->setPosition( newPos );
+      characterNode->setRotation( irr::core::vector3df( 0, y_MeshRotation, 0 ) );
+      irr::core::vector3df playerPos = characterNode->getPosition();
+
 
       //Set Camera mouvement
       float y_TargetOffset = 20.0f;
@@ -92,7 +113,6 @@ class CameraManager
       float zf = playerPos.Z + sin( y_Rotation * irr::core::PI / 180.0f ) * 64.0f;
       cameraNode->setPosition( irr::core::vector3df( xf, yf, zf + z_PositionOffset ) );
       cameraNode->setTarget( irr::core::vector3df( playerPos.X, playerPos.Y + y_TargetOffset, playerPos.Z) );
-      node->setRotation( irr::core::vector3df( 0, y_Rotation, 0 ) );
     }
 
 
@@ -105,6 +125,7 @@ class CameraManager
     bool thirdPersonCamera;
     float y_Rotation;
     float y_Direction;
+    float y_MeshRotation;
 
 };
 

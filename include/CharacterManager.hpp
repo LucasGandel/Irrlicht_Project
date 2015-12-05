@@ -3,12 +3,14 @@
 
 #include <irrlicht.h>
 #include "PathFinder.hpp"
+#include "EventReceiver.hpp"
 
 class CharacterManager
 {
   public:
     //! Constructor
     CharacterManager()
+      : animationType( irr::scene::EMAT_STAND ), running( false )
     {}
 
     //Add ITerrainSceneNode to scene manager
@@ -34,10 +36,9 @@ class CharacterManager
       Mesh mouvement is set by the 3rd person camera manager
       */
       characterNode->setMaterialFlag(irr::video::EMF_LIGHTING, false);
-      characterNode->setMD2Animation(irr::scene::EMAT_STAND);
       characterNode->setMaterialTexture( 0,
         driver->getTexture( pathFinder.getFullMediaPath( "sydney.bmp" ) ) );
-      characterNode->setMD2Animation(irr::scene::EMAT_RUN);
+      characterNode->setMD2Animation( animationType );
       characterNode->setPosition( irr::core::vector3df(5400,510,5200) );
 
     }
@@ -62,8 +63,34 @@ class CharacterManager
       animator->drop();
     }
 
+    void updateAnimationType( EventReceiver* eventReceiver )
+    {
+
+      if( ( eventReceiver->IsKeyDown( irr::KEY_DOWN ) ||
+            eventReceiver->IsKeyDown( irr::KEY_UP ) ) )
+        {
+        if( !running )
+          {
+          animationType = irr::scene::EMAT_RUN;
+          characterNode->setMD2Animation( animationType );
+          running = true;
+        }
+        }
+      else
+      if( running )
+        {
+         animationType = irr::scene::EMAT_STAND;
+         characterNode->setMD2Animation( animationType );
+         running = false;
+        }
+    }
+
     //Animated Mesh scene node
      irr::scene::IAnimatedMeshSceneNode* characterNode;
+
+    //Animation Type
+     irr::scene::EMD2_ANIMATION_TYPE animationType;
+     bool running;
 
 
 };

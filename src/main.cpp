@@ -59,7 +59,8 @@ int main(void)
     }
 
     //3rd Person mouvement
-    cameraManager.move3rdPersonCameraControl( device, characterManager.characterNode );
+    cameraManager.move3rdPersonCameraControl( device, characterManager.characterNode, &eventReceiver );
+    characterManager.updateAnimationType( &eventReceiver );
 
     //Draw scene
     driver->beginScene( true, true, color );
