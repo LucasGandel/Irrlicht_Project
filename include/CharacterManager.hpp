@@ -21,9 +21,8 @@ class CharacterManager
 
       //Add mesh
       irr::scene::IAnimatedMesh* meshCharacter = sceneManager->getMesh(
-        pathFinder.getFullMediaPath( "sydney.md2" ) );
+        pathFinder.getFullMediaPath( "faerie.md2" ) );
       characterNode = sceneManager->addAnimatedMeshSceneNode( meshCharacter );
-      meshCharacter->drop();
 
       /*
       To let the mesh look a little bit nicer, we change its material. We
@@ -37,7 +36,7 @@ class CharacterManager
       */
       characterNode->setMaterialFlag(irr::video::EMF_LIGHTING, false);
       characterNode->setMaterialTexture( 0,
-        driver->getTexture( pathFinder.getFullMediaPath( "sydney.bmp" ) ) );
+        driver->getTexture( pathFinder.getFullMediaPath( "faerie2.bmp" ) ) );
       characterNode->setMD2Animation( animationType );
       characterNode->setPosition( irr::core::vector3df(5400,510,5200) );
 
