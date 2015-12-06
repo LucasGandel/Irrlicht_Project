@@ -6,11 +6,6 @@
 #include "../include/CameraManager.hpp"
 #include "../include/CharacterManager.hpp"
 
-#include <iostream>
-
-float direction = 0.0f;
-float zdirection = 0.0f;
-
 int main(void)
 {
   //Event Receiver
@@ -57,7 +52,6 @@ int main(void)
     {
       device->closeDevice();
     }
-
     //3rd Person mouvement
     cameraManager.move3rdPersonCameraControl( device, characterManager.characterNode, &eventReceiver );
     characterManager.updateAnimationType( &eventReceiver );

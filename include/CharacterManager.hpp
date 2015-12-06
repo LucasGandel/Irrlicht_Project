@@ -38,7 +38,7 @@ class CharacterManager
       characterNode->setMaterialTexture( 0,
         driver->getTexture( pathFinder.getFullMediaPath( "faerie2.bmp" ) ) );
       characterNode->setMD2Animation( animationType );
-      characterNode->setPosition( irr::core::vector3df(5400,510,5200) );
+      characterNode->setPosition( irr::core::vector3df( 5400, 510, 5200 ) );
 
     }
 

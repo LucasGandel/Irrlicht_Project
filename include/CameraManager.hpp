@@ -4,14 +4,14 @@
 #include <irrlicht.h>
 #include "PathFinder.hpp"
 #include "EventReceiver.hpp"
-
+#include <iostream>
 class CameraManager
 {
   public:
     //! Constructor
     CameraManager()
       :FarValue( 42000.0f ),thirdPersonCamera( false ),
-       y_Rotation( 0.0f ), y_Direction( 0.0f ), y_MeshRotation( 0.0f )
+       x_Rotation( 0.0f ), y_Rotation( 0.0f ), y_MeshRotation( 0.0f )
     {}
 
     //Add 3er person camera
@@ -59,15 +59,15 @@ class CameraManager
       float dy = ( cursorPos.Y - 0.5 ) * cursorSensibility;
 
       y_Rotation += dx;
-      y_Direction -= dy;
-      if( y_Direction < -90 )
+      x_Rotation += dy;
+      if( x_Rotation < -90 )
       {
-        y_Direction = -90;
+        x_Rotation = -90;
       }
       else
-      if( y_Direction > 10 )
+      if( x_Rotation > 10 )
       {
-        y_Direction = 10;
+        x_Rotation = 10;
       }
 
       //Reset Cursor position
@@ -102,17 +102,16 @@ class CameraManager
       irr::core::vector3df newPos = ( facing * speed ) + characterNode->getPosition();
       characterNode->setPosition( newPos );
       characterNode->setRotation( irr::core::vector3df( 0, y_MeshRotation, 0 ) );
-      irr::core::vector3df playerPos = characterNode->getPosition();
-
 
       //Set Camera mouvement
-      float y_TargetOffset = 20.0f;
-      float z_PositionOffset = -10.0f;
-      float xf = playerPos.X - cos( y_Rotation * irr::core::PI / 180.0f ) * 64.0f;
-      float yf = playerPos.Y - sin( y_Direction * irr::core::PI / 180.0f ) * 64.0f;
-      float zf = playerPos.Z + sin( y_Rotation * irr::core::PI / 180.0f ) * 64.0f;
-      cameraNode->setPosition( irr::core::vector3df( xf, yf, zf + z_PositionOffset ) );
-      cameraNode->setTarget( irr::core::vector3df( playerPos.X, playerPos.Y + y_TargetOffset, playerPos.Z) );
+      float Zoom = 70.0f;
+      irr::core::vector3df playerPos = characterNode->getPosition();
+      irr::core::vector3df cameraPos = characterNode->getPosition() + irr::core::vector3df( Zoom, Zoom, 0 );
+
+      cameraPos.rotateXYBy( x_Rotation, playerPos );
+      cameraPos.rotateXZBy( -y_Rotation, playerPos );
+      cameraNode->setPosition( cameraPos );
+      cameraNode->setTarget( irr::core::vector3df( playerPos.X, playerPos.Y, playerPos.Z ) );
     }
 
 
@@ -123,9 +122,10 @@ class CameraManager
 
     //3rd Person Camera parameters
     bool thirdPersonCamera;
+    float x_Rotation;
     float y_Rotation;
-    float y_Direction;
     float y_MeshRotation;
+
 
 };
 

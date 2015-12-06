@@ -62,7 +62,8 @@ class TerrainManager
         selector, sceneNode,
         irr::core::vector3df( 60, 100, 60 ),//Ellipsoid Radius
         irr::core::vector3df( 0, y_gravity, 0 ),//Gravity per second
-        irr::core::vector3df( 0, 0, 0) );  //Ellipsoid Translation (Offset)
+        irr::core::vector3df( 0, -76, 0) );  //Ellipsoid Translation (Offset)
+        //WARNING: The offset to set depends on the mesh origin.
       selector->drop();
       sceneNode->addAnimator( animator );
       animator->drop();
