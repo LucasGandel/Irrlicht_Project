@@ -65,8 +65,10 @@ class CharacterManager
     void updateAnimationType( EventReceiver* eventReceiver )
     {
 
-      if( ( eventReceiver->IsKeyDown( irr::KEY_DOWN ) ||
-            eventReceiver->IsKeyDown( irr::KEY_UP ) ) )
+      if( eventReceiver->IsKeyDown( irr::KEY_DOWN ) ||
+        eventReceiver->IsKeyDown( irr::KEY_UP )     ||
+        eventReceiver->IsKeyDown( irr::KEY_LEFT )   ||
+        eventReceiver->IsKeyDown( irr::KEY_RIGHT ) )
         {
         if( !running )
           {

@@ -24,15 +24,25 @@ class EventReceiver : public irr::IEventReceiver
     }
 
     // This is used to check whether a key is being held down
-    virtual bool IsKeyDown(irr::EKEY_CODE keyCode) const
+    virtual bool IsKeyDown( irr::EKEY_CODE keyCode ) const
     {
       return KeyIsDown[keyCode];
+    }
+
+    //Indicates if arrow keys are pressed
+    bool IsArrowDown()
+    {
+     return( KeyIsDown[irr::KEY_UP] ||
+       KeyIsDown[irr::KEY_DOWN] ||
+       KeyIsDown[irr::KEY_LEFT] ||
+       KeyIsDown[irr::KEY_RIGHT] );
     }
 
   private:
 
     // We use this array to store the current state of each key
     bool KeyIsDown[irr::KEY_KEY_CODES_COUNT];
+
 };
 
 #endif // EVENTRECEIVER_H

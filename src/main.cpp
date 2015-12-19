@@ -20,6 +20,9 @@ int main(void)
   // Create Video Driver
   irr::video::IVideoDriver* driver =
     device->getVideoDriver();
+  // Set cursor position
+  device->getCursorControl()->setPosition( 0.5f, 0.5f );
+
   // Create SceneManager
   irr::scene::ISceneManager* sceneManager =
     device->getSceneManager();
