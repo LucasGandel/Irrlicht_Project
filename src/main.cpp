@@ -43,6 +43,7 @@ int main(void)
   terrainManager.addTerrainToScene( sceneManager, driver );
   terrainManager.addSceneNodeCollision( sceneManager, characterManager.characterNode );
   terrainManager.addSceneNodeCollision( sceneManager, cameraManager.cameraNode );
+  terrainManager.addSkyBox( sceneManager, driver );
 
   //Set font color ( A (transparency), R, G, B )
   irr::video::SColor color( 255, 255, 255, 255);

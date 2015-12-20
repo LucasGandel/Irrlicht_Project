@@ -69,6 +69,39 @@ class TerrainManager
       animator->drop();
     }
 
+    // Add Sky Dome
+    void addSkyDome( irr::scene::ISceneManager* sceneManager, irr::video::IVideoDriver* driver )
+    {
+      //Path Finder to load texture
+      PathFinder pathFinder;
+
+      driver->setTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS, false);
+
+      /*irr::scene::ISceneNode* skydome=*/sceneManager->addSkyDomeSceneNode(
+          driver->getTexture( pathFinder.getFullMediaPath( "skydome.jpg" ) ),16,8,0.9f,2.0f);
+
+      driver->setTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS, true);
+    }
+
+    // Add Sky Box
+    void addSkyBox( irr::scene::ISceneManager* sceneManager, irr::video::IVideoDriver* driver )
+    {
+      //Path Finder to load texture
+      PathFinder pathFinder;
+
+      driver->setTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS, false);
+
+      /*irr::scene::ISceneNode* skybox=*/sceneManager->addSkyBoxSceneNode(
+        driver->getTexture( pathFinder.getFullMediaPath( "irrlicht2_up.jpg" ) ),
+        driver->getTexture( pathFinder.getFullMediaPath( "irrlicht2_dn.jpg" ) ),
+        driver->getTexture( pathFinder.getFullMediaPath( "irrlicht2_lf.jpg" ) ),
+        driver->getTexture( pathFinder.getFullMediaPath( "irrlicht2_rt.jpg" ) ),
+        driver->getTexture( pathFinder.getFullMediaPath( "irrlicht2_ft.jpg" ) ),
+        driver->getTexture( pathFinder.getFullMediaPath( "irrlicht2_bk.jpg" ) ) );
+
+      driver->setTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS, true);
+    }
+
     //Terrain scene node
     irr::scene::ITerrainSceneNode* terrainNode;
 
