@@ -4,13 +4,16 @@
 #include <irrlicht.h>
 #include "PathFinder.hpp"
 #include "EventReceiver.hpp"
-
+#include "AnimationEndCallBack.hpp"
+#include "Math.hpp"
+#include <iostream>
 class CharacterManager
 {
   public:
     //! Constructor
     CharacterManager()
-      : animationType( irr::scene::EMAT_STAND ), running( false )
+      :y_MeshRotation( 0.0f ),
+       animationType( irr::scene::EMAT_STAND ), animationSwitch(false)
     {}
 
     //Add ITerrainSceneNode to scene manager
@@ -37,8 +40,10 @@ class CharacterManager
       characterNode->setMaterialFlag(irr::video::EMF_LIGHTING, false);
       characterNode->setMaterialTexture( 0,
         driver->getTexture( pathFinder.getFullMediaPath( "faerie2.bmp" ) ) );
-      characterNode->setMD2Animation( animationType );
-      characterNode->setPosition( irr::core::vector3df( 5400, 510, 5200 ) );
+      characterNode->setMD2Animation( irr::scene::EMAT_STAND );
+      characterNode->setPosition( irr::core::vector3df( 5400, 570, 5200 ) );
+
+      metaTriangleSelector = sceneManager->createMetaTriangleSelector();
 
     }
 
@@ -46,52 +51,188 @@ class CharacterManager
     void addSceneNodeCollision( irr::scene::ISceneManager* sceneManager, irr::scene::ISceneNode* sceneNode )
     {
       //WARNING: For futur development. Not Tested Yet.
-      // Create triangle selector
-      irr::scene::ITriangleSelector* selector =
-        sceneManager->createOctreeTriangleSelector( characterNode->getMesh(), sceneNode, 128 );
-      characterNode->setTriangleSelector( selector );
-
+//       Create triangle selector
+     irr::scene::ITriangleSelector* selector = sceneNode->getTriangleSelector();
+     if(!selector)
+     {
+       return;
+     }
+     metaTriangleSelector->addTriangleSelector(selector);
       //Create collision response animator and attach it to the scene node
-      irr::scene::ISceneNodeAnimator* animator = sceneManager->createCollisionResponseAnimator(
-        selector, sceneNode,
-        irr::core::vector3df( 60, 100, 60 ),//Ellipsoid Radius
-        irr::core::vector3df( 0, 0, 0 ),//Gravity per second
-        irr::core::vector3df( 0, 0, 0) );  //Ellipsoid Translation (Offset)
+      animator = sceneManager->createCollisionResponseAnimator(
+        metaTriangleSelector, characterNode,
+        irr::core::vector3df( 70, 30, 70 ),//Ellipsoid Radius
+        irr::core::vector3df( 0, -10, 0 ),//Gravity per second
+        irr::core::vector3df( 0, 10, 0) );  //Ellipsoid Translation (Offset)
       selector->drop();
-      sceneNode->addAnimator( animator );
+      characterNode->addAnimator( animator );
       animator->drop();
     }
 
-    void updateAnimationType( EventReceiver* eventReceiver )
+    //Update 3rd person position and orientation
+    void updateTransform( EventReceiver* eventReceiver )
     {
+      //Mesh Speed
+      float speed = 0.0f;
 
-      if( eventReceiver->IsKeyDown( irr::KEY_DOWN ) ||
-        eventReceiver->IsKeyDown( irr::KEY_UP )     ||
-        eventReceiver->IsKeyDown( irr::KEY_LEFT )   ||
-        eventReceiver->IsKeyDown( irr::KEY_RIGHT ) )
+      //KeyBoard Mesh action
+      if( eventReceiver->IsKeyDown( KEY_DOWN) )
         {
-        if( !running )
-          {
-          animationType = irr::scene::EMAT_RUN;
-          characterNode->setMD2Animation( animationType );
-          running = true;
+        speed = -4.0f;
         }
+      if( eventReceiver->IsKeyDown( KEY_UP ) )
+        {
+        speed = 4.0f;
+        }
+      if( eventReceiver->IsKeyDown( KEY_RIGHT ) )
+        {
+        y_MeshRotation += 3.0f;
+        speed = 3.0f;
+        }
+      if( eventReceiver->IsKeyDown( KEY_LEFT ) )
+        {
+        y_MeshRotation -= 3.0f;
+        speed = 3.0f;
+
+        }
+      if( animationType == irr::scene::EMAT_ATTACK  )
+        {
+        speed = 0.0f;
+        }
+
+
+      clampAsAngle( &y_MeshRotation );
+
+      //Calculates mesh position
+      irr::core::vector3df meshForward(
+        sin( ( characterNode->getRotation().Y + 90.0f ) * irr::core::PI/180.0f ),
+        0,
+        cos( ( characterNode->getRotation().Y + 90.0f ) * irr::core::PI/180.0f ) );
+
+      meshForward.normalize();
+
+      irr::core::vector3df newPos = meshForward * speed + characterNode->getPosition();
+
+      //Update Mesh
+      characterNode->setPosition( newPos );
+      characterNode->setRotation(
+        irr::core::vector3df( 0, y_MeshRotation + 180.0f, 0 ) );
+    }
+
+    //Update 3rd person animation
+    void updateAnimation( EventReceiver* eventReceiver )
+    {
+    //Set standing or running
+    if( animationType != irr::scene::EMAT_ATTACK &&
+      animationType != irr::scene::EMAT_JUMP  )
+      {if( (eventReceiver->IsKeyDown( KEY_UP) ||
+       eventReceiver->IsKeyDown( KEY_DOWN) ||
+       eventReceiver->IsKeyDown( KEY_LEFT) ||
+       eventReceiver->IsKeyDown( KEY_RIGHT) ))
+       {
+       if( animationType != irr::scene::EMAT_RUN)
+         {
+         animationType = irr::scene::EMAT_RUN;
+         animationSwitch = true;
+         }
+       else
+         {
+         animationSwitch = false;
+         }
+       }
+     else
+       {
+       if(animationType != irr::scene::EMAT_STAND)
+         {
+         animationType = irr::scene::EMAT_STAND;
+         animationSwitch = true;
+         }
+       else
+         {
+         animationSwitch = false;
+         }
+       }
+    }
+
+    //handle Jump
+    if(animationType != irr::scene::EMAT_JUMP )
+      {
+      if(eventReceiver->IsKeyDown( KEY_JUMP))
+        {
+        characterNode->setLoopMode( false );
+        animationType = irr::scene::EMAT_JUMP ;
+        animationSwitch = true;characterNode->setAnimationEndCallback( &jumpEndReceiver );
+        animator->jump(3.0f);
+        }
+      }
+    else
+      {
+      if( jumpEndReceiver.animationEnd )
+        {
+        animationSwitch =true;
+        animationType = irr::scene::EMAT_STAND;
+        jumpEndReceiver.animationEnd=false;
+         }
+       else
+         {
+         animationSwitch = false;
+         }
+       }
+
+
+      //handle attack
+      if( animationType != irr::scene::EMAT_ATTACK )
+        {
+        if(eventReceiver->IsKeyDown( KEY_ATTACK))
+          {
+          characterNode->setLoopMode( false );
+          animationType = irr::scene::EMAT_ATTACK ;
+          animationSwitch = true;characterNode->setAnimationEndCallback( &attackEndReceiver );
+          }
         }
       else
-      if( running )
         {
-         animationType = irr::scene::EMAT_STAND;
-         characterNode->setMD2Animation( animationType );
-         running = false;
+        if( attackEndReceiver.animationEnd )
+          {
+          animationSwitch =true;
+          animationType = irr::scene::EMAT_STAND;
+          attackEndReceiver.animationEnd=false;
+          }
+        else
+          {
+          animationSwitch = false;
+          }
         }
+
+      //Switch animation
+      if(animationSwitch)
+        {
+          characterNode->setMD2Animation(animationType);
+          animationSwitch =false;
+        }
+    }
+
+    void UpdateCharacter( EventReceiver* eventReceiver   )
+    {
+        updateTransform( eventReceiver );
+        updateAnimation( eventReceiver );
     }
 
     //Animated Mesh scene node
      irr::scene::IAnimatedMeshSceneNode* characterNode;
 
-    //Animation Type
+    //Collision handling
+     irr::scene::ISceneNodeAnimatorCollisionResponse* animator;
+     irr::scene::IMetaTriangleSelector * metaTriangleSelector;
+
+     //3rd Person parameters
+     // Rotation parameter
+     float y_MeshRotation;
+     // Animation
      irr::scene::EMD2_ANIMATION_TYPE animationType;
-     bool running;
+     AnimationEndCallBack attackEndReceiver;
+     AnimationEndCallBack jumpEndReceiver;
+     bool animationSwitch;
 
 
 };
