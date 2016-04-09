@@ -34,16 +34,19 @@ int main(void)
   CameraManager cameraManager;
   cameraManager.add3rdPersonCameraToScene( sceneManager );
 
-  //Add mesh
-  CharacterManager characterManager;
-  characterManager.addCharacterToScene( sceneManager, driver );
-
   // Add terrain scene node
   TerrainManager terrainManager;
   terrainManager.addTerrainToScene( sceneManager, driver );
-  terrainManager.addSceneNodeCollision( sceneManager, characterManager.characterNode );
+  //Here, the terrain create its own triangleSelector and set the cameraNode to collide with it;
+  //See Character manager for better approach.
   terrainManager.addSceneNodeCollision( sceneManager, cameraManager.cameraNode );
   terrainManager.addSkyBox( sceneManager, driver );
+
+  //Add mesh
+  CharacterManager characterManager;
+  characterManager.addCharacterToScene( sceneManager, driver );
+  //Here the characterNode stores all triangleSelector for every object it collides with.
+  characterManager.addSceneNodeCollision( sceneManager, terrainManager.terrainNode );
 
   //Set font color ( A (transparency), R, G, B )
   irr::video::SColor color( 255, 255, 255, 255);
@@ -57,8 +60,9 @@ int main(void)
       device->closeDevice();
     }
     //3rd Person mouvement
-    cameraManager.move3rdPersonCameraControl( device, characterManager.characterNode, &eventReceiver );
-    characterManager.updateAnimationType( &eventReceiver );
+    cameraManager.UpdateCamera( device, &eventReceiver, characterManager );
+    characterManager.UpdateCharacter( &eventReceiver );
+//    characterManager.updateAnimationType( &eventReceiver );
 
     //Draw scene
     driver->beginScene( true, true, color );

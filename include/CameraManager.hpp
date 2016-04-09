@@ -4,7 +4,9 @@
 #include <irrlicht.h>
 #include "PathFinder.hpp"
 #include "EventReceiver.hpp"
+#include "CharacterManager.hpp"
 #include "Math.hpp"
+#include <iostream>
 
 class CameraManager
 {
@@ -13,8 +15,7 @@ class CameraManager
     CameraManager()
       :FarValue( 42000.0f ), setCameraToMeshOrientation( true ),
        moveCameraCursor( false ), d_Interpolate( 1.0f ),
-       x_Rotation( 0.0f ), y_Rotation( 0.0f ),
-       y_MeshRotation( 0.0f )
+       x_Rotation( 0.0f ), y_Rotation( 0.0f )
     {}
 
     //Add 3er person camera
@@ -56,9 +57,9 @@ class CameraManager
     timer += deltaTime/100000.0f;
     }
 
-    //Move 3rd person camera and its character
-    void move3rdPersonCameraControl( irr::IrrlichtDevice* device,
-      irr::scene::IAnimatedMeshSceneNode* characterNode, EventReceiver* eventReceiver )
+    //Move 3rd person camera to its character
+    void UpdateCamera( irr::IrrlichtDevice* device,
+      EventReceiver* eventReceiver, CharacterManager characterManager )
     {
       //Get cursor mouvement
       irr::core::position2d<irr::f32> cursorPos =
@@ -73,73 +74,19 @@ class CameraManager
       x_Rotation += dy;
 
       clamp( &x_Rotation, -90, 10 );
+      clampAsAngle( &y_Rotation );
 
       //Reset Cursor position
       device->getCursorControl()->setPosition( 0.5f, 0.5f );
 
-      //Set 3rd person mouvement
-      update3rdPerson( characterNode,
-        eventReceiver->IsKeyDown( irr::KEY_UP),
-        eventReceiver->IsKeyDown( irr::KEY_DOWN),
-        eventReceiver->IsKeyDown( irr::KEY_RIGHT),
-        eventReceiver->IsKeyDown( irr::KEY_LEFT) );
-
-      //Set Camera mouvement
-      if( checkOrientation( device, eventReceiver->IsArrowDown(), dx, dy ) )
+      //Set Camera to 3rd person orientation
+      if( checkOrientation( device, eventReceiver->IsArrowDown(), dx, dy, characterManager.y_MeshRotation ) )
         {
-        replaceCameraToMesh();
-        }
-      updateCamera( characterNode->getPosition() );
-    }
-
-    //Update 3rd person position and orientation
-    void update3rdPerson( irr::scene::IAnimatedMeshSceneNode* characterNode, bool keyUp, bool keyDown, bool keyRight, bool keyLeft )
-    {
-      //Mesh Speed
-      float speed = 0.0f;
-
-      //KeyBoard Mesh action
-      if( keyDown )
-        {
-        speed = -4.0f;
-        }
-      if( keyUp )
-        {
-        speed = 4.0f;
-        }
-      if( keyLeft )
-        {
-        y_MeshRotation -= 3.0f;
-        speed = 3.0f;
-        }
-      if( keyRight )
-        {
-        y_MeshRotation += 3.0f;
-        speed = 3.0f;
+        replaceCameraToMesh(characterManager.y_MeshRotation);
         }
 
-      clampAsAngle( &y_MeshRotation );
-      clampAsAngle( &y_Rotation );
-
-      //Calculates mesh position
-      irr::core::vector3df meshForward(
-        sin( ( characterNode->getRotation().Y + 90.0f ) * irr::core::PI/180.0f ),
-        0,
-        cos( ( characterNode->getRotation().Y + 90.0f ) * irr::core::PI/180.0f ) );
-
-      meshForward.normalize();
-
-      irr::core::vector3df newPos = meshForward * speed + characterNode->getPosition();
-
-      //Update Mesh
-      characterNode->setPosition( newPos );
-      characterNode->setRotation(
-        irr::core::vector3df( 0, y_MeshRotation + 180.0f, 0 ) );
-    }
-
-    //Update camera position and orientation
-    void updateCamera( irr::core::vector3df characterNodePosition )
-    {
+      //3rd person position
+      irr::core::vector3df characterNodePosition = characterManager.characterNode->getPosition();
       //Camera Zoom
       float Zoom = 70.0f;
 
@@ -151,10 +98,11 @@ class CameraManager
       //Update
       cameraNode->setPosition( cameraPos );
       cameraNode->setTarget( irr::core::vector3df( characterNodePosition.X, characterNodePosition.Y, characterNodePosition.Z ) );
+
     }
 
     //Set camera orientation to mesh orientation
-    void replaceCameraToMesh()
+    void replaceCameraToMesh(float y_MeshRotation)
     {
       if( abs(y_MeshRotation-y_Rotation) >= 1.0f )
         {
@@ -190,7 +138,7 @@ class CameraManager
 
     //Check orientation condition to replace camera to mesh orientation
     bool checkOrientation( irr::IrrlichtDevice* device,
-      bool arrowDown, float dx, float dy )
+      bool arrowDown, float dx, float dy, float y_MeshRotation )
     {
       // Check Mesh-Camera angle when Mesh is moving and camera is not moved
       // with cursor
@@ -237,11 +185,9 @@ class CameraManager
     bool setCameraToMeshOrientation;
     bool moveCameraCursor;
     float d_Interpolate;
-
     // Rotation parameters
     float x_Rotation;
     float y_Rotation;
-    float y_MeshRotation;
 
     // Time parameters
     float time;
